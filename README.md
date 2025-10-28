@@ -57,7 +57,9 @@ If you'd like to share knowledge or collaborate, feel free to reach out:
 
 Thanks for stopping by! 🙂
 
-⚖️ Legal Notice
+---
+
+## ⚖️ Legal Notice
 
 Copyright © 2025 Juan David Escobar Cruz
 
