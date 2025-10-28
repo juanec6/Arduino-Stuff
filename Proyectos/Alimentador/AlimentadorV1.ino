@@ -81,7 +81,7 @@ void setup() {
 // =========================================================
 //                        LOOP
 // =========================================================
-// TIME AND DATE DD/MM/YY VARIABLES
+// TIME HH:MM:SS AND DATE DD/MM/YY VARIABLES
 int hour;
 int minutes;
 int seconds;
@@ -89,16 +89,37 @@ int day;
 int month;
 int year;
 
+// TIME AND DATE VARIABLES TO SET ALARM
+int alarmHour;
+int alarmMinutes;
+int alarmSeconds;
+int alarmDay;
+int alarmMonth;
+int alarmYear;
+
+//Alarm navigation variables and 
+bool alarmSave;
+
 
 void loop() {
   //TIME AND DATE
   DateTime now = rtc.now();
-  hour = now.hour();
-  minutes = now.minute();
-  seconds = now.second() + 8;
-  day = now.day();
-  month = now.month();
-  year = now.year();
+  hour         = now.hour();
+  minutes      = now.minute();
+  seconds      = now.second() + 8;
+  year         = now.year();
+  month        = now.month();
+  day          = now.day();
+  alarmHour    = now.hour();
+  alarmMinutes = now.minute();
+  alarmSeconds = now.second() + 8;
+  alarmDay     = now.day();
+  alarmMonth   = now.month();
+  alarmYear    = now.year();
+
+  //Alarm navigation variables and 
+  alarmSave =  false;
+  
 
   // -- LCD NAVIGATION AND FUNCTION --
   switch (menuLevel) {
@@ -117,7 +138,6 @@ void loop() {
         lcd.print(":");
         if (seconds < 10) lcd.print("0");
         lcd.print(seconds);
-
         // --- Show Date ---
         lcd.setCursor(0, 1);
         lcd.print("Date: ");
@@ -195,9 +215,28 @@ void loop() {
     // --- ALARM ---
     // =====================================================
     case 2:
-      {
+      { // -- First We show the actual time and date -- 
+        // --- Show Time ---
         lcd.setCursor(0, 0);
-        lcd.print("Soy alarma");
+        lcd.print("Alarm: ");
+        if (alarmHour < 10) lcd.print("0");
+        lcd.print(alarmHour);
+        lcd.print(":");
+        if (alarmMinutes < 10) lcd.print("0");
+        lcd.print(alarmMinutes);
+        lcd.print(":");
+        if (alarmSeconds < 10) lcd.print("0");
+        lcd.print(alarmSeconds);
+        // --- Show Date ---
+        lcd.setCursor(0, 1);
+        lcd.print("Set: ");
+        if (alarmDay < 10) lcd.print("0");
+        lcd.print(day);
+        lcd.print("/");
+        if (alarmMonth < 10) lcd.print("0");
+        lcd.print(alarmMonth);
+        lcd.print("/");
+        lcd.print(alarmYear);
 
         if (digitalRead(BUTTON_BACK) == LOW) {
           if (millis() - lastDebounceBack > debounceDelay) {
