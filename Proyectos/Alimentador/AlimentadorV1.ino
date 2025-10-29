@@ -11,14 +11,11 @@
 #define BUTTON_ENTER 3
 #define RED_LED 9
 #define GREEN_LED 13
-#define SERVO 11
-
-
 
 // -------------------- LCD & RTC --------------------
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 RTC_DS3231 rtc;
-Servo myServo;
+Servo myServo1;
 
 // --- MENU OPTIONS ---
 const int numOptions = 4;
@@ -38,15 +35,41 @@ unsigned long lastDebounceDown = 0;
 unsigned long lastDebounceBack = 0;
 unsigned long lastDebounceEnter = 0;
 
-// -------------------- MENU VARIABLES --------------------
+// -------------------- PROGRAM VARIABLES--------------------
 int currentOption = 0;
 int menuLevel = 0;  // 0 = time and date, 1 = Menu, 2 = submenú
+
+// --- TIME HH:MM:SS AND DATE DD/MM/YY VARIABLES
+int hour;
+int minutes;
+int seconds;
+int day;
+int month;
+int year;
+
+// -- TIME AND DATE VARIABLES TO SET ALARM
+int alarmHour;
+int alarmMinutes;
+int alarmSeconds;
+int alarmDay;
+int alarmMonth;
+int alarmYear;
+
+// -- Alarm navigation variables and 
+bool alarmSave = false;
+
+// -- Servo
+int posI = 0;    // Servo initial position
+int posF = 180;  // Servo final position
+bool servoMoved = false;
+int currentPos = 0;
 
 // =========================================================
 //                        SETUP
 // =========================================================
 void setup() {
   Serial.begin(9600);
+
   // --- Button Configuration ---
   pinMode(BUTTON_MENU, INPUT_PULLUP);
   pinMode(BUTTON_UP, INPUT_PULLUP);
@@ -55,6 +78,7 @@ void setup() {
   pinMode(BUTTON_ENTER, INPUT_PULLUP);
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
+  myServo1.attach(11);
 
   // --- LCD INITIALIZATION ---
   lcd.init();
@@ -66,11 +90,12 @@ void setup() {
     while (1)
       ;
   }
-
   // --- Welcome Message ---
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 0);
   lcd.print("Hola gonorrea");
-  delay(500);
+  lcd.setCursor(0, 1);
+  lcd.print("Que mas pues?");
+  delay(2000);
 
   // Just adjust once to adjust the compilation time.
   //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
@@ -81,25 +106,6 @@ void setup() {
 // =========================================================
 //                        LOOP
 // =========================================================
-// TIME HH:MM:SS AND DATE DD/MM/YY VARIABLES
-int hour;
-int minutes;
-int seconds;
-int day;
-int month;
-int year;
-
-// TIME AND DATE VARIABLES TO SET ALARM
-int alarmHour;
-int alarmMinutes;
-int alarmSeconds;
-int alarmDay;
-int alarmMonth;
-int alarmYear;
-
-//Alarm navigation variables and 
-bool alarmSave;
-
 
 void loop() {
   //TIME AND DATE
@@ -116,10 +122,6 @@ void loop() {
   alarmDay     = now.day();
   alarmMonth   = now.month();
   alarmYear    = now.year();
-
-  //Alarm navigation variables and 
-  alarmSave =  false;
-  
 
   // -- LCD NAVIGATION AND FUNCTION --
   switch (menuLevel) {
@@ -247,7 +249,7 @@ void loop() {
         }
         break;
       }
-
+      //    
     // =====================================================
     // --- TIMER ---
     // =====================================================
@@ -271,18 +273,54 @@ void loop() {
     // =====================================================
     case 4:
       {
-        lcd.setCursor(0, 0);
-        lcd.print("Soy servito");
-
-        if (digitalRead(BUTTON_BACK) == LOW) {
-          if (millis() - lastDebounceBack > debounceDelay) {
+        // Inicialización al entrar
+        if (!servoMoved) {
+            currentPos = posI;        // empieza desde la posición inicial
+            myServo1.write(currentPos);
+            servoMoved = true;
             lcd.clear();
-            menuLevel = 1;
-            lastDebounceBack = millis();
-          }
+            lcd.setCursor(0, 0);
+            lcd.print("Servo Control");
+        }
+
+        // Mostrar posición
+        lcd.setCursor(0, 1);
+        lcd.print("Pos: ");
+        lcd.print(currentPos);
+        lcd.print("   "); // limpia dígitos anteriores
+
+        // Botón UP
+        if (digitalRead(BUTTON_UP) == LOW) {
+            if (millis() - lastDebounceUp > debounceDelay) {
+                currentPos++;
+                if (currentPos > posF) currentPos = posF;
+                myServo1.write(currentPos);
+                lastDebounceUp = millis();
+            }
+        }
+
+        // Botón DOWN
+        if (digitalRead(BUTTON_DOWN) == LOW) {
+            if (millis() - lastDebounceDown > debounceDelay) {
+                currentPos--;
+                if (currentPos < posI) currentPos = posI;
+                myServo1.write(currentPos);
+                lastDebounceDown = millis();
+            }
+        }
+
+        // Botón BACK
+        if (digitalRead(BUTTON_BACK) == LOW) {
+            if (millis() - lastDebounceBack > debounceDelay) {
+                lcd.clear();
+                menuLevel = 1;
+                servoMoved = false;  // reset para próxima vez
+                lastDebounceBack = millis();
+            }
         }
         break;
       }
+
 
     // =====================================================
     // --- LED MANAGEMENT ---
