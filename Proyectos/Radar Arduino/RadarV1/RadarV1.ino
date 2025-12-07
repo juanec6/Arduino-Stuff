@@ -223,6 +223,8 @@ void loop()
           
         }
       }
+      digitalWrite(GREEN_LED, HIGH);
+      digitalWrite(RED_LED, HIGH);
       break;
     }
 
@@ -304,8 +306,7 @@ void loop()
       lcd.setCursor(0, 0);
       if(detectionSaved == true)
       {
-        lcd.print(F("Last track: "));
-        lcd.setCursor(0, 1);
+        lcd.print(F("Time: "));
         if(lastHour < 10) lcd.print(F("0"));
         lcd.print(lastHour);
         lcd.print(F(":"));
@@ -314,15 +315,19 @@ void loop()
         lcd.print(F(":"));
         if(lastSecond < 10) lcd.print(F("0"));
         lcd.print(lastSecond);
-        lcd.print(F(" A"));
+        lcd.setCursor(0, 1);
+        lcd.print(F("A: "));
         lcd.print(lastAngle);
-        lcd.print(F(" D"));
+        lcd.print(F(" "));
+        lcd.print(F(" D: "));
         lcd.print(lastDistance);
+        lcd.print(F("   "));
+        
       } else
       {
         lcd.print(F("No detections."));
         lcd.setCursor(0, 1);
-        lcd.print("F(<35 cm)");
+        lcd.print(F("Dist < 35 cm"));
       }
 
       if(distance < 35)
@@ -367,15 +372,6 @@ void loop()
       {
         Serial.println(", No Movement Detected");
       }
-
-
-      if(digitalRead(BUTTON_BACK) == LOW){
-        if(millis() - lastDebounce > debounceDelay){
-          lcd.clear();
-          menuLevel = 1;
-          lastDebounce = millis();
-        }
-      }
       
       if(digitalRead(BUTTON_BACK) == LOW) 
       {
@@ -386,7 +382,6 @@ void loop()
           lcd.clear();
         }
       }
-
       break;
     }
     
