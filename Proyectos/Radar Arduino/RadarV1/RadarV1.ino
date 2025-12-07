@@ -205,7 +205,7 @@ void loop()
       {
         if(millis() - lastDebounce > debounceDelay)
         {
-          lcd.clear(); 
+          lcd.clear();
           menuLevel = currentOption + 2;
           lastDebounce = millis();
         }
@@ -277,6 +277,7 @@ void loop()
         digitalWrite(RED_LED, LOW);
       }
 
+
       if(digitalRead(BUTTON_BACK) == LOW){
         if(millis() - lastDebounce > debounceDelay){
           lcd.clear();
@@ -287,9 +288,9 @@ void loop()
       break;
     }
     
+    // Real time logs
     case 3:
     {
-      // Real time logs
       servoMotion();
       digitalWrite(trigPin, LOW);
       delayMicroseconds(2);
@@ -344,6 +345,29 @@ void loop()
         digitalWrite(GREEN_LED, HIGH);
         digitalWrite(RED_LED, LOW);
       }
+      
+      Serial.print("Dst: "); 
+      Serial.print(distance);
+      Serial.print(", Ang: "); 
+      Serial.print(servoPos);
+
+      if(distance < 35)
+      {
+        Serial.print(", Movement Detected at ");
+        if(lastHour < 10) Serial.print("0");
+        Serial.print(lastHour);
+        Serial.print(":");
+        if(lastMinute < 10) Serial.print("0");
+        Serial.print(lastMinute);
+        Serial.print(":");
+        if(lastSecond < 10) Serial.print("0");
+        Serial.println(lastSecond);
+      } 
+      else 
+      {
+        Serial.println(", No Movement Detected");
+      }
+
 
       if(digitalRead(BUTTON_BACK) == LOW){
         if(millis() - lastDebounce > debounceDelay){
@@ -363,6 +387,56 @@ void loop()
         }
       }
 
+      break;
+    }
+    
+    // -- Radar Settings
+    case 4:
+    {
+      lcd.setCursor(0, 0);
+      lcd.print(F("Manual Radar"));
+      if(digitalRead(BUTTON_BACK) == LOW) 
+      {
+        if(millis() - lastDebounce > debounceDelay)
+        {
+          menuLevel = 1;
+          lastDebounce = millis();
+          lcd.clear();
+        }
+      }
+      break;
+    }
+
+    // -- Time Settings
+    case 5:
+    {
+      lcd.setCursor(0, 0);
+      lcd.print(F("Time Settings goes here"));
+      if(digitalRead(BUTTON_BACK) == LOW) 
+      {
+        if(millis() - lastDebounce > debounceDelay)
+        {
+          menuLevel = 1;
+          lastDebounce = millis();
+          lcd.clear();
+        }
+      }
+      break;
+    }
+
+    case 6:
+    {
+      lcd.setCursor(0, 0);
+      lcd.print(F("Alarm goes here"));
+      if(digitalRead(BUTTON_BACK) == LOW) 
+      {
+        if(millis() - lastDebounce > debounceDelay)
+        {
+          menuLevel = 1;
+          lastDebounce = millis();
+          lcd.clear();
+        }
+      }
       break;
     }
   }
