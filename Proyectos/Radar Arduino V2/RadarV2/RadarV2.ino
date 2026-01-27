@@ -31,7 +31,8 @@ const char* menu[numOptions] = {
 
 // -- DEBOUNCE CONTROL
 const uint32_t debounceDelay = 500;
-uint16_t lastDebounce = 0;
+uint16_t lastDebounceBack = 0;
+uint16_t lastDebounceEnter = 0;
 
 // -- JOYSTICK VARIABLES
 int16_t joyX;
@@ -86,7 +87,7 @@ void loop() {
   joyX = analogRead(JOY_X) - 512;
   joyY = (analogRead(JOY_Y) - 512)*(-1);
 
-  // -- X-axis Joystick centering and states
+  // -- X-axis Joystick centering and position states
   if(abs(joyX) < DEADZONE) joyX = 0;
   if(joyX > 0)       joyDirX = 1;
   else if(joyX < 0)  joyDirX = -1;
@@ -131,9 +132,9 @@ void loop() {
       lcd.print(F("   "));
 
       // -- Access menu
-      if(digitalRead(ENTER_BUTTON) == LOW && millis() - lastDebounce > debounceDelay)
+      if(digitalRead(ENTER_BUTTON) == LOW && millis() - lastDebounceEnter > debounceDelay)
       {
-        lastDebounce = millis();
+        lastDebounceEnter = millis();
         menuLevel = 1;
         lcd.clear();
       }
@@ -162,24 +163,24 @@ void loop() {
 
       // Up
       if(joyDirY == 1 && lastJoyDirY == 0){
+        lcd.clear();
         currentOption--;
         if(currentOption < 0) currentOption = numOptions - 1;
-        lcd.clear();
       }
 
       // -- Enter Button
-      if(digitalRead(ENTER_BUTTON) == LOW && millis() - lastDebounce > debounceDelay)
+      if(digitalRead(ENTER_BUTTON) == LOW && millis() - lastDebounceEnter > debounceDelay)
       {
-        lastDebounce = millis();
-        menuLevel = currentOption + 2;
         lcd.clear();
+        lastDebounceEnter = millis();
+        menuLevel = currentOption + 2;
       }
 
       // -- Back to home screen
-      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounce > debounceDelay)
+      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounceBack > debounceDelay)
       {
         lcd.clear();
-        lastDebounce = millis();
+        lastDebounceBack = millis();
         menuLevel = 0;
         currentOption = 0;
       }
@@ -191,12 +192,13 @@ void loop() {
     {
       servoMotion();
 
-      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounce > debounceDelay)
+      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounceBack > debounceDelay)
       {
         lcd.clear();
-        lastDebounce = millis();
+        lastDebounceBack = millis();
         menuLevel = 1;
         servoPos = 90;
+        currentOption = 0;
       }
       break;
     } // Case 2 end
@@ -208,12 +210,13 @@ void loop() {
       lcd.print(F("Hola gonorrea"));
 
       // -- Back button
-      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounce > debounceDelay)
+      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounceBack > debounceDelay)
       {
         lcd.clear();
-        lastDebounce = millis();
+        lastDebounceBack = millis();
         menuLevel = 1;
         servoPos = 90;
+        currentOption = 0;
       }
       break;
     } // Case 3 end
@@ -253,13 +256,48 @@ void loop() {
       lcd.print(F("      ")); 
 
       // -- Back button
-      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounce > debounceDelay)
+      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounceBack > debounceDelay)
       {
         lcd.clear();
-        lastDebounce = millis();
+        lastDebounceBack = millis();
         menuLevel = 1;
         servoPos = 90;
+        currentOption = 0;
         Servo1.write(servoPos);
+      }
+      break;
+    }
+
+    // -- Time Setting
+    case 5:
+    {
+      lcd.setCursor(0, 0);
+      lcd.print("Hola puto");
+
+            // -- Back button
+      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounceBack > debounceDelay)
+      {
+        lcd.clear();
+        lastDebounceBack = millis();
+        menuLevel = 1;
+        currentOption = 0;
+      }
+      break;
+    }
+
+    // -- Alarm
+    case 6:
+    {
+      lcd.setCursor(0, 0);
+      lcd.print("Hola putisimo");
+
+            // -- Back button
+      if(digitalRead(BACK_BUTTON) == LOW && millis() - lastDebounceBack > debounceDelay)
+      {
+        lcd.clear();
+        lastDebounceBack = millis();
+        menuLevel = 1;
+        currentOption = 0;
       }
       break;
     }
@@ -281,5 +319,3 @@ void servoMotion()
     Servo1.write(servoPos);
   }
 }
-
-
