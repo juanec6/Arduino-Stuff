@@ -14,6 +14,8 @@
 #define JOY_Y A1
 #define DEADZONE 30
 #define SWITCHER_RS 9
+#define trigPin 8
+#define echoPin 7
 
 // -- CLASSES
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -66,21 +68,30 @@ void setup()
 
   // -- Servo and Radar ON/OFF switcher. 
   pinMode(SWITCHER_RS, INPUT_PULLUP);
+
+  // -- Sonar initialization
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 }
 
 // -- FUNCTIONS AND VARIABLES OF COMPONENTS
 // -- Servo and radar variables
 int16_t servoPos = 0;
 int8_t servoDir = 1;
-// -- This is done to avoid delays, basically what happens is that
-unsigned long timeStamp = 0;
+unsigned long timeStamp = 0;// This is done to ensure the servo moves each 500 ms
+unsigned long sonarTimeStamp = 0;// This is done to ensure sonar measures by 40 ms
+float distance;
 void servoMotionAndRadar(bool ON, int8_t step) // If ON is True, Servo and radar will work, if false, it wont. 
 {
+  unsigned long waveDuration;
+  ON = digitalRead(SWITCHER_RS);
   if(ON == true) // Turn on servo. 
   {
+    // -- Sonar data acquisition
+
     // we don't want the servo to move like crazy, so it makes a step after a timeInterval
     // change the 50 to speed up or speed down. 
-    if(millis() - timeStamp >= 500) // 100 is ms that takes the servo to move to the next step.
+    if(millis() - sonarTimeStamp >= 40 && millis() - timeStamp >= 500) // 100 is ms that takes the servo to move to the next step.
     {
       // -- This will update the time stamp to the last moment the servo moved.
       timeStamp = millis();
@@ -96,34 +107,53 @@ void servoMotionAndRadar(bool ON, int8_t step) // If ON is True, Servo and radar
         servoDir = 1;
       }
       Servo1.write(servoPos);
+      sonarTimeStamp = millis();
+      digitalWrite(trigPin, LOW); 
+      delayMicroseconds(2); // --stabilizes pin
+      digitalWrite(trigPin, HIGH); // -- Shoots sonar
+      delayMicroseconds(10);
+      digitalWrite(trigPin, LOW); // -- Shoot ends.
+      
+      waveDuration = pulseIn(echoPin, HIGH);
+      distance = (waveDuration*0.0343)/2; // --  speed of sound is in cm/microsecoonds and divided by two because is time going and coming back to the triger.
     }
   } else{
-    if (servoPos != 0) 
+    if (ON == false) 
     {
       servoPos = 0;
-      servoDir = 1; 
-      Servo1.write(0);
+      servoDir = 1;
+      digitalWrite(trigPin, LOW);
+      delayMicroseconds(2);
+      digitalWrite(trigPin, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(trigPin, LOW);
+      waveDuration = pulseIn(echoPin, HIGH);
+      distance = (waveDuration*0.0343)/2;
     }
     timeStamp = 0;
+    Servo1.write(0);
   }
 }
 
-// -- Joystick variables
 
 void loop()
 {
-  // -- If switcher is high, rada will be on, if is low, it will be turned off.
-  if(digitalRead(SWITCHER_RS) == LOW) 
-  {
-    servoMotionAndRadar(false, 3);
-    lcd.setCursor(0, 0);
-    lcd.print(F("Radar is OFF."));
-  } else {
-    servoMotionAndRadar(true, 3);  
-    lcd.setCursor(0, 0);
-    lcd.print(F("Angle: "));
-    lcd.print(servoPos);
-    lcd.print(F("     "));
-  }
+  servoMotionAndRadar(LOW, 3);
+  lcd.setCursor(0,0);
+  lcd.print(F("Dist: "));
+  lcd.print(F("    ")); // 4 espacios
+  lcd.setCursor(6,0);
+  lcd.print(distance);
+  lcd.setCursor(12,0);
+  lcd.print(" cm");
+
+  // Línea 1
+  lcd.setCursor(0,1);
+  lcd.print(F("Angle: "));
+  lcd.print(F("    "));
+  lcd.setCursor(7,1);
+  lcd.print(servoPos);
+  lcd.setCursor(12,1);  // limpia la línea donde va el número
+  lcd.print(F(" Grds"));
 }
 
